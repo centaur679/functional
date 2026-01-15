@@ -37,13 +37,13 @@ Functional是一个强大的Java工具类库，提供了多种便捷的函数式
 <dependency>
   <groupId>com.iofairy</groupId>
   <artifactId>functional</artifactId>
-  <version>0.6.0</version>
+  <version>0.6.1</version>
 </dependency>
 ```
 
 ### Gradle
 ```
-implementation 'com.iofairy:functional:0.6.0'
+implementation 'com.iofairy:functional:0.6.1'
 ```
 
 

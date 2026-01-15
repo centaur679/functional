@@ -69,13 +69,13 @@ English | [简体中文](./README.zh-CN.md)
 <dependency>
   <groupId>com.iofairy</groupId>
   <artifactId>functional</artifactId>
-  <version>0.6.0</version>
+  <version>0.6.1</version>
 </dependency>
 ```
 
 ### Gradle
 ```
-implementation 'com.iofairy:functional:0.6.0'
+implementation 'com.iofairy:functional:0.6.1'
 ```
 
 
