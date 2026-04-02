@@ -1,5 +1,6 @@
 package com.iofairy.test.time;
 
+import com.iofairy.except.OutOfBoundsException;
 import com.iofairy.os.OS;
 import com.iofairy.time.*;
 import com.iofairy.range.Range;
@@ -1735,6 +1736,7 @@ public class DateTimeTest {
         DateTime dt2 = DateTime.parse("2021-12-29 06:01:50", "yyyy-MM-dd HH:mm:ss");  // 星期三
         DateTime dt3 = DateTime.parse("2022-01-01 06:01:50", "yyyy-MM-dd HH:mm:ss");  // 星期六
         DateTime dt4 = DateTime.parse("2022-01-02 06:01:50", "yyyy-MM-dd HH:mm:ss");  // 星期日
+        DateTime dt5 = DateTime.parse("2026-04-02 06:01:50", "yyyy-MM-dd HH:mm:ss");  // 星期日
 
         DateTime dt01 = dt1.dtInThisWeek(DayOfWeek.TUESDAY);              // 2021-12-28 06:01:50.000000000 [Asia/Shanghai +08:00 GMT+8 周二]
         DateTime dt02 = dt1.dtInThisWeek(DayOfWeek.THURSDAY);             // 2021-12-30 06:01:50.000000000 [Asia/Shanghai +08:00 GMT+8 周四]
@@ -1842,6 +1844,7 @@ public class DateTimeTest {
         List<DateTime> dateTimes6 = dt2.allDaysInThisWeek(DayOfWeek.SUNDAY);
         List<DateTime> dateTimes7 = dt3.allDaysInThisWeek(DayOfWeek.SUNDAY);
         List<DateTime> dateTimes8 = dt4.allDaysInThisWeek(DayOfWeek.SUNDAY);
+        List<DateTime> dateTimes9 = dt5.allDaysInThisWeek(DayOfWeek.WEDNESDAY);
 
         assertEquals("[2021-12-27 06:01:50.000, 2021-12-28 06:01:50.000, 2021-12-29 06:01:50.000, 2021-12-30 06:01:50.000, " +
                 "2021-12-31 06:01:50.000, 2022-01-01 06:01:50.000, 2022-01-02 06:01:50.000]", dateTimes1.toString());
@@ -1859,6 +1862,8 @@ public class DateTimeTest {
                 "2021-12-30 06:01:50.000, 2021-12-31 06:01:50.000, 2022-01-01 06:01:50.000]", dateTimes7.toString());
         assertEquals("[2022-01-02 06:01:50.000, 2022-01-03 06:01:50.000, 2022-01-04 06:01:50.000, 2022-01-05 06:01:50.000, " +
                 "2022-01-06 06:01:50.000, 2022-01-07 06:01:50.000, 2022-01-08 06:01:50.000]", dateTimes8.toString());
+        assertEquals("[2026-04-01 06:01:50.000, 2026-04-02 06:01:50.000, 2026-04-03 06:01:50.000, 2026-04-04 06:01:50.000, " +
+                "2026-04-05 06:01:50.000, 2026-04-06 06:01:50.000, 2026-04-07 06:01:50.000]", dateTimes9.toString());
 
 
     }
@@ -2133,6 +2138,91 @@ public class DateTimeTest {
         System.out.println(TZ.ZONE_IDS);
         assertEquals(ZoneId.getAvailableZoneIds().toString(), TZ.ZONE_IDS.toString());
     }
+
+
+    @Test
+    public void testDtInThisWeekByIndex1() {
+        // 周四
+        DateTime dateTime = DateTime.of(LocalDateTime.of(2026, 4, 2, 15, 50, 8));
+        DayOfWeek firstDay = DayOfWeek.MONDAY;
+
+        // 周一（2026-3-30） - 周日（2026-4-5）
+        assertEquals(DateTime.of("2026-3-30 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 1));
+        assertEquals(DateTime.of("2026-4-1 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 3));
+        assertEquals(DateTime.of("2026-4-5 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 7));
+
+        firstDay = DayOfWeek.WEDNESDAY;
+
+        // 周三（2026-4-1） - 周二（2026-4-7）
+        assertEquals(DateTime.of("2026-4-1 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 1));
+        assertEquals(DateTime.of("2026-4-3 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 3));
+        assertEquals(DateTime.of("2026-4-7 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 7));
+
+        firstDay = DayOfWeek.SUNDAY;
+
+        // 周日（2026-3-29） - 周六（2026-4-4）
+        assertEquals(DateTime.of("2026-3-29 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 1));
+        assertEquals(DateTime.of("2026-3-31 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 3));
+        assertEquals(DateTime.of("2026-4-4 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 7));
+    }
+
+    @Test
+    public void testDtInThisWeekByIndex2() {
+        // 周四
+        DateTime dateTime = DateTime.of(LocalDateTime.of(2026, 3, 30, 15, 50, 8));
+        DayOfWeek firstDay = DayOfWeek.MONDAY;
+
+        // 周一（2026-3-30） - 周日（2026-4-5）
+        assertEquals(DateTime.of("2026-3-30 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 1));
+        assertEquals(DateTime.of("2026-4-1 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 3));
+        assertEquals(DateTime.of("2026-4-5 15:50:8"), dateTime.dtInThisWeekByIndex(firstDay, 7));
+
+        try {
+            dateTime.dtInThisWeekByIndex(firstDay, 0);
+        } catch (Exception e) {
+            assertSame(e.getClass(), OutOfBoundsException.class);
+            assertEquals(e.getMessage(), "数值超出所允许的范围，当前值为：[0]。参数`dayIndex`的取值范围必须为：[1, 7]。");
+        }
+    }
+
+    @Test
+    public void testDtInThisWeekByTarget1() {
+        // 周四
+        DateTime dateTime = DateTime.of(LocalDateTime.of(2026, 4, 2, 15, 50, 8));
+        DayOfWeek firstDay = DayOfWeek.MONDAY;
+
+        // 周一（2026-3-30） - 周日（2026-4-5）
+        assertEquals(DateTime.of("2026-3-30 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.MONDAY));
+        assertEquals(DateTime.of("2026-4-1 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.WEDNESDAY));
+        assertEquals(DateTime.of("2026-4-5 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.SUNDAY));
+
+        firstDay = DayOfWeek.WEDNESDAY;
+
+        // 周三（2026-4-1） - 周二（2026-4-7）
+        assertEquals(DateTime.of("2026-4-1 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.WEDNESDAY));
+        assertEquals(DateTime.of("2026-4-3 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.FRIDAY));
+        assertEquals(DateTime.of("2026-4-7 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.TUESDAY));
+
+        firstDay = DayOfWeek.SUNDAY;
+
+        // 周日（2026-3-29） - 周六（2026-4-4）
+        assertEquals(DateTime.of("2026-3-29 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.SUNDAY));
+        assertEquals(DateTime.of("2026-3-31 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.TUESDAY));
+        assertEquals(DateTime.of("2026-4-4 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.SATURDAY));
+    }
+
+    @Test
+    public void testDtInThisWeekByTarget2() {
+        // 周四
+        DateTime dateTime = DateTime.of(LocalDateTime.of(2026, 3, 30, 15, 50, 8));
+        DayOfWeek firstDay = DayOfWeek.MONDAY;
+
+        // 周一（2026-3-30） - 周日（2026-4-5）
+        assertEquals(DateTime.of("2026-3-30 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.MONDAY));
+        assertEquals(DateTime.of("2026-4-1 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.WEDNESDAY));
+        assertEquals(DateTime.of("2026-4-5 15:50:8"), dateTime.dtInThisWeekByTarget(firstDay, DayOfWeek.SUNDAY));
+    }
+
 
     private void throwException() {
         throw new RuntimeException();
