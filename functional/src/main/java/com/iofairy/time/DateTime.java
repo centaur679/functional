@@ -1158,9 +1158,38 @@ public class DateTime implements Temporal, Comparable<DateTime>, Serializable {
     public DateTime dtInThisWeek(DayOfWeek firstDayOfWeek, DayOfWeek dayOfWeek) {
         checkHasNullNPE(args(firstDayOfWeek, dayOfWeek), args("firstDayOfWeek", "dayOfWeek"));
 
-        Tuple2<Integer, Integer> days1 = DateTimes.daysBetween(firstDayOfWeek, localDateTime.getDayOfWeek());
-        Tuple2<Integer, Integer> days2 = DateTimes.daysBetween(firstDayOfWeek, dayOfWeek);
-        return this.plusDays(days2._2 - days1._2);
+        int targetIndex = (dayOfWeek.getValue() - firstDayOfWeek.getValue() + 7) % 7 + 1;
+        return dtInThisWeek(firstDayOfWeek, targetIndex);
+    }
+
+    /**
+     * 获取当前{@code DateTime}所在周的第 N 天（周一为第1天）的日期
+     *
+     * @param dayIndex 本周第几天，从 1 开始（<b>1 = 周的第一天，7 = 周的最后一天</b>）
+     * @return {@code dayIndex}那天的 {@code DateTime}
+     * @since 0.6.2
+     */
+    public DateTime dtInThisWeek(int dayIndex) {
+        return dtInThisWeek(DayOfWeek.MONDAY, dayIndex);
+    }
+
+    /**
+     * 获取当前{@code DateTime}所在周的第 N 天（第1天为周的起始日）的日期
+     *
+     * @param firstDayOfWeek 指定每周的第一天是星期几
+     * @param dayIndex       本周第几天，从 1 开始（<b>1 = 周的第一天，7 = 周的最后一天</b>）
+     * @return {@code dayIndex}那一天的 {@code DateTime}
+     * @since 0.6.2
+     */
+    public DateTime dtInThisWeek(DayOfWeek firstDayOfWeek, int dayIndex) {
+        checkNullNPE(firstDayOfWeek, "firstDayOfWeek");
+        checkOutOfBounds(dayIndex < 1 || dayIndex > 7, dayIndex, OS.IS_ZH_LANG ? "参数`dayIndex`的取值范围必须为：[1, 7]。" : "Parameter `dayIndex` must be in [1, 7]! ");
+
+        // 当前星期几相对于周起始日是第几天（0-based，以0为初始值）
+        int currentOffset = (zonedDateTime.getDayOfWeek().getValue() - firstDayOfWeek.getValue() + 7) % 7;
+        // 目标是第 dayIndex 天（转为 0-based 再做差值）
+        int targetOffset = dayIndex - 1;
+        return from(zonedDateTime.plusDays(targetOffset - currentOffset));
     }
 
     /**
@@ -1207,62 +1236,6 @@ public class DateTime implements Temporal, Comparable<DateTime>, Serializable {
         TemporalAdjuster temporalAdjuster = TemporalAdjusters.nextOrSame(lastDayOfWeek);
         return this.with(temporalAdjuster);
     }
-
-    /**
-     * 获取当前{@code DateTime}所在周的第 N 天（周一为第1天）的日期
-     *
-     * @param dayIndex 本周第几天，从 1 开始（<b>1 = 周的第一天，7 = 周的最后一天</b>）
-     * @return {@code dayIndex}那天的 {@code DateTime}
-     * @since 0.6.2
-     */
-    public DateTime dtInThisWeekByIndex(int dayIndex) {
-        return dtInThisWeekByIndex(DayOfWeek.MONDAY, dayIndex);
-    }
-
-    /**
-     * 获取当前{@code DateTime}所在周的指定星期几的日期（周一为第1天）
-     *
-     * @param targetDayOfWeek 目标星期几（如：DayOfWeek.WEDNESDAY）
-     * @return {@code targetDayOfWeek}那天的 {@code DateTime}
-     * @since 0.6.2
-     */
-    public DateTime dtInThisWeekByTarget(DayOfWeek targetDayOfWeek) {
-        return dtInThisWeekByTarget(DayOfWeek.MONDAY, targetDayOfWeek);
-    }
-
-    /**
-     * 获取当前{@code DateTime}所在周的第 N 天（第1天为周的起始日）的日期
-     *
-     * @param firstDayOfWeek 指定每周的第一天是星期几
-     * @param dayIndex       本周第几天，从 1 开始（<b>1 = 周的第一天，7 = 周的最后一天</b>）
-     * @return {@code dayIndex}那一天的 {@code DateTime}
-     * @since 0.6.2
-     */
-    public DateTime dtInThisWeekByIndex(DayOfWeek firstDayOfWeek, int dayIndex) {
-        checkNullNPE(firstDayOfWeek, "firstDayOfWeek");
-        checkOutOfBounds(dayIndex < 1 || dayIndex > 7, dayIndex, OS.IS_ZH_LANG ? "参数`dayIndex`的取值范围必须为：[1, 7]。" : "Parameter `dayIndex` must be in [1, 7]! ");
-
-        // 当前星期几相对于周起始日是第几天（0-based，以0为初始值）
-        int currentOffset = (zonedDateTime.getDayOfWeek().getValue() - firstDayOfWeek.getValue() + 7) % 7;
-        // 目标是第 dayIndex 天（转为 0-based 再做差值）
-        int targetOffset = dayIndex - 1;
-        return from(zonedDateTime.plusDays(targetOffset - currentOffset));
-    }
-
-    /**
-     * 获取当前{@code DateTime}所在周的指定星期几的日期
-     *
-     * @param firstDayOfWeek  指定每周的第一天是星期几
-     * @param targetDayOfWeek 目标星期几（如：DayOfWeek.WEDNESDAY）
-     * @return {@code targetDayOfWeek}那一天的 {@code DateTime}
-     * @since 0.6.2
-     */
-    public DateTime dtInThisWeekByTarget(DayOfWeek firstDayOfWeek, DayOfWeek targetDayOfWeek) {
-        checkHasNullNPE(args(firstDayOfWeek, targetDayOfWeek), args("firstDayOfWeek", "targetDayOfWeek"));
-        int targetIndex = (targetDayOfWeek.getValue() - firstDayOfWeek.getValue() + 7) % 7 + 1;
-        return dtInThisWeekByIndex(firstDayOfWeek, targetIndex);
-    }
-
 
     /**
      * 获取当前日期所在的周信息
